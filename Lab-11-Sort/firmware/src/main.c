@@ -93,7 +93,7 @@ static uint8_t uartTxBuffer[MAX_PRINT_LEN] = {0};
 // used by the C compiler as the function's return value.
 //
 // Function signature
-// For this lab, return the larger of the two floating point values passed in.
+// Create references to the assembly functions to be tested
 extern int32_t asmSwap(void *, int32_t sign, int32_t elemSize);
 extern int32_t asmSort(void *, int32_t sign, int32_t elemSize);
 
