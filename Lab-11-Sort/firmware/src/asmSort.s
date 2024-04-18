@@ -7,6 +7,20 @@
 .align    
 
 @ Define the globals so that the C code can access them
+/* define and initialize global variables that C can access */
+/* create a string */
+.global nameStr
+.type nameStr,%gnu_unique_object
+    
+/*** STUDENTS: Change the next line to your name!  **/
+nameStr: .asciz "Inigo Montoya"  
+
+.align   /* realign so that next mem allocations are on word boundaries */
+ 
+/* initialize a global variable that C can access to print the nameStr */
+.global nameStrPtr
+.type nameStrPtr,%gnu_unique_object
+nameStrPtr: .word nameStr   /* Assign the mem loc of nameStr to nameStrPtr */
 
 .if 0    
 @ left these in as an example. Not used.

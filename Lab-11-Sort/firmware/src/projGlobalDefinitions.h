@@ -26,7 +26,7 @@ extern "C" {
     
 #define VERBOSE_DEBUG 0
 
-#define MAX_PRINT_LEN 1000
+#define MAX_PRINT_LEN 2000
 
 #define MAX_SORT_LEN 10  // excludes trailing 0, so max array size is this + 1
 #define MAX_SORT_ARRAY_SIZE ((MAX_SORT_LEN+1))

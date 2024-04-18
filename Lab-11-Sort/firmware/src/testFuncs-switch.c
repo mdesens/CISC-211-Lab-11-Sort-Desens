@@ -222,7 +222,7 @@ static int32_t mySwap(void * inpPtr, // swappable input values stored here
     int32_t mySwapResult = 0;
     if(sign == UNSIGNED) // process unsigned values
     {
-        if (elementSize == 1) // unsigned bytes
+        if (elementSize == BYTE) // unsigned bytes
         {
             uint8_t inpVal[2];
             inpVal[0] = *((uint8_t *) inpPtr);
@@ -245,7 +245,7 @@ static int32_t mySwap(void * inpPtr, // swappable input values stored here
                 mySwapResult = 0;
             }
         }
-        else if (elementSize == 2) // unsigned halfwords
+        else if (elementSize == HWORD) // unsigned halfwords
         {
             uint16_t inpVal[2];
             inpVal[0] = *((uint16_t *) inpPtr);
@@ -268,7 +268,7 @@ static int32_t mySwap(void * inpPtr, // swappable input values stored here
                 mySwapResult = 0;
             }
         }
-        else if (elementSize == 4) // unsigned words
+        else if (elementSize == WORD) // unsigned words
         {
             uint32_t inpVal[2];
             inpVal[0] = *((uint32_t *) inpPtr);
@@ -320,7 +320,7 @@ static int32_t mySwap(void * inpPtr, // swappable input values stored here
                 mySwapResult = 0;
             }
         }
-        else if (elementSize == 2) // signed halfwords
+        else if (elementSize == HWORD) // signed halfwords
         {
             int16_t inpVal[2];
             inpVal[0] = *((int16_t *) inpPtr);
@@ -348,7 +348,7 @@ static int32_t mySwap(void * inpPtr, // swappable input values stored here
                 mySwapResult = 0;
             }
         }
-        else if (elementSize == 4) // signed words
+        else if (elementSize == WORD) // signed words
         {
             int32_t inpVal[2];
             inpVal[0] = *((int32_t *) inpPtr);
