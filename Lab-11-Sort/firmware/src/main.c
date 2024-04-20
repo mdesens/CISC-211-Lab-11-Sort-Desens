@@ -79,25 +79,27 @@ extern int32_t asmSort(void *, int32_t sign, int32_t elemSize);
 // test cases for swap
 static int32_t swapTestCases[][2] = 
 {
-    {0x0203,0x0302},
-    {0x80000001,0x00000001},
-    {0,0},
-    {1,2},
-    {2,1}
+    {0x0203,0x0302},         // swap TC 0
+    {0x80000001,0x00000001}, // swap TC 1
+    {0,0},                   // swap TC 2
+    {1,2},                   // swap TC 3
+    {2,1}                    // swap TC 4
 };
 
 // test cases for sort
 static int32_t sortTestCases[][MAX_SORT_ARRAY_SIZE] = {
-#if 1
-    {79,69,59,78,68,58,75,65,45,-1,0}, // add this test case for SPR'24
-#endif
-    {2,1,0,6,0,1,2,3,4,5,6},
-    {9,8,7,6,0,1,2,3,4,5,6},
-    {0,0,0,0,0,0,0,0,0,0,0},
-    {32768,1,0,0x001122AA,0x001122AA,0x001122AA,0x001122AA,0x001122AA,0x001122AA,0x001122AA,0x001122AA},
-    {0x80000001,0x80011000,0x80010001,0x80011001,0x700109A0,0x7FED4000,0x60000000,0,0x11111111,0x22222222,0x33333333},
-    {1,2,3,4,5,6,7,8,9,0,0},
-    {-1,-2,-3,0,9,10,11,12,13,15}
+    {79,69,59,78,68,58,75,65,45,-1,0}, // sort TC 0
+    {2,1,0,6,0,1,2,3,4,5,6},           // sort TC 1
+    {9,8,7,6,0,1,2,3,4,5,6},           // sort TC 2
+    {0,0,0,0,0,0,0,0,0,0,0},           // sort TC 3
+    {32768,1,0,0x001122AA,0x001122AA,
+        0x001122AA,0x001122AA,0x001122AA,
+        0x001122AA,0x001122AA,0x001122AA},   // sort TC 4
+    {0x80000001,0x80011000,0x80010001,0x80011001,
+        0x700109A0,0x7FED4000,0x60000000,0,
+        0x11111111,0x22222222,0x33333333},   // sort TC 5
+    {1,2,3,4,5,6,7,8,9,0,0},           // sort TC 6
+    {-1,-2,-3,0,9,10,11,12,13,15}      // sort TC 7
 };
 
 
@@ -353,14 +355,14 @@ int main ( void )
     // Print the summary of all swap and sort tests
     
 #if USING_HW
-    int32_t swapPointsMax = 12;
+    int32_t swapPointsMax = 15;
     int32_t swapPoints = swapPointsMax*swapTotalPassCount/swapTotalTestCount;
 
-    int32_t sortPointsMax = 12;
+    int32_t sortPointsMax = 15;
     int32_t sortPoints = sortPointsMax*sortTotalPassCount/sortTotalTestCount;
     
     snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
-            "========= ALL TESTS COMPLETE!\r\n"
+            "========= %s: asmSort.s ALL TESTS COMPLETE!\r\n"
             "swap tests passed: %ld \r\n"
             "swap tests failed: %ld \r\n"
             "swap total tests:  %ld \r\n"
@@ -369,7 +371,8 @@ int main ( void )
             "sort tests failed: %ld \r\n"
             "sort total tests:  %ld \r\n"
             "sort score: %ld/%ld points \r\n\r\n"
-            "FINAL SCORE: %ld\r\n",
+            "FINAL SCORE: %ld\r\n\r\n",
+            nameStrPtr,
             swapTotalPassCount,
             swapTotalFailCount,
             swapTotalTestCount,
@@ -385,6 +388,32 @@ int main ( void )
     printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
 
 #endif
+
+    snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
+            "========= Going into idle mode; display will not scroll!\r\n");
+    printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
+
+    // change to 2s timer and start idle counter loop
+    RTC_Timer32Compare0Set(PERIOD_2S);
+    RTC_Timer32CounterSet(0);
+    RTC_Timer32Start();
+    isRTCExpired = false;
+    uint32_t idleCounter = 0;
+
+    while(1)
+    {
+        snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
+                "========= Idle Cycle Counter: %6ld\r",
+                idleCounter);
+
+        printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
+
+        // wait for the toggle timer to expire
+        while(isRTCExpired == false);
+        LED0_Toggle();
+        isRTCExpired = false;
+        ++idleCounter;
+    }
 
     
     /* Execution should not come here during normal operation */

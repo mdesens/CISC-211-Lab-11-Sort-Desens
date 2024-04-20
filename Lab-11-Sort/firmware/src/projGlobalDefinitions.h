@@ -31,6 +31,8 @@ extern "C" {
 #define MAX_SORT_LEN 10  // excludes trailing 0, so max array size is this + 1
 #define MAX_SORT_ARRAY_SIZE ((MAX_SORT_LEN+1))
 
+extern char * nameStrPtr;
+
 // STUDENTS: Uncomment only ONE of the next two lines
 #define ONLY_PRINT_SWAP_FAILS ((true))
 // #define ONLY_PRINT_SWAP_FAILS ((false))

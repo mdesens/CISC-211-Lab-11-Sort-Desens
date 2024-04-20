@@ -22,13 +22,6 @@ nameStr: .asciz "Inigo Montoya"
 .type nameStrPtr,%gnu_unique_object
 nameStrPtr: .word nameStr   /* Assign the mem loc of nameStr to nameStrPtr */
 
-.if 0    
-@ left these in as an example. Not used.
-.global fMax
-.type fMax,%gnu_unique_object
- fMax: .word 0
-.endif 
-
 @ Tell the assembler that what follows is in instruction memory    
 .text
 .align
