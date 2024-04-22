@@ -32,7 +32,7 @@ function description:
     Checks magnitude of each of two input values 
     v1 and v2 that are stored in adjacent in 32bit memory words.
     v1 is located in memory location (inpAddr)
-    v2 is located at mem location (inpAddr + M4 word dize)
+    v2 is located at mem location (inpAddr + M4 word size)
     
     If v1 or v2 is 0, this function immediately
     places 0 in r0 and returns to the caller.
