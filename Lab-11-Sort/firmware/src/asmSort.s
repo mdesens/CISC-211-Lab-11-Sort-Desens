@@ -35,7 +35,7 @@ function description:
     v2 is located at mem location (inpAddr + M4 word size)
     
     If v1 or v2 is 0, this function immediately
-    places 0 in r0 and returns to the caller.
+    places -1 in r0 and returns to the caller.
     
     Else, if v1 <= v2, this function 
     does not modify memory, and returns 0 in r0. 
