@@ -40,9 +40,9 @@
 #include <string.h>
 #include <float.h>
 #include "definitions.h"                // SYS function prototypes
-#include "projGlobalDefinitions.h"  // lab print funcs
+#include "projGlobalDefinitions.h"  // proj global definitions
 #include "printFuncs.h"  // lab print funcs
-#include "testFuncs.h"  // lab print funcs
+#include "testFuncs.h"  // lab test funcs
 
 /* RTC Time period match values for input clock of 1 KHz */
 #define PERIOD_50MS                             51
