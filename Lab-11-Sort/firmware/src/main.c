@@ -355,10 +355,10 @@ int main ( void )
     // Print the summary of all swap and sort tests
     
 #if USING_HW
-    int32_t swapPointsMax = 15;
+    int32_t swapPointsMax = 25;
     int32_t swapPoints = swapPointsMax*swapTotalPassCount/swapTotalTestCount;
 
-    int32_t sortPointsMax = 15;
+    int32_t sortPointsMax = 25;
     int32_t sortPoints = sortPointsMax*sortTotalPassCount/sortTotalTestCount;
     
     snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
