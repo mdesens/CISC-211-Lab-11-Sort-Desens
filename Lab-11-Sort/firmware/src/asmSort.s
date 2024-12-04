@@ -13,7 +13,7 @@
 .type nameStr,%gnu_unique_object
     
 /*** STUDENTS: Change the next line to your name!  **/
-nameStr: .asciz "Inigo Montoya"  
+nameStr: .asciz "Mark Desens"  
 
 .align   /* realign so that next mem allocations are on word boundaries */
  
@@ -74,7 +74,21 @@ asmSwap:
 
     /* YOUR asmSwap CODE BELOW THIS LINE! VVVVVVVVVVVVVVVVVVVVV  */
 
+    /* Pseudocode for asmSwap function */
+    /*
+        Load the first value from memory
+        Load the second value from memory
+        If either value is 0, Return -1 (return value is in r0)
 
+        Check if the first value is greater than the second value
+        If the first value is not greater than the second value, Return 0
+
+        Otherwise, Swap the values in memory using the steps below:
+        Store the second value in a temporary location
+        Store the first value in the location of the second value (using the correct size)
+        Store the second value in the location of the first value (using the correct size)
+        Return 1 to indicate a swap was made
+    */
 
     /* YOUR asmSwap CODE ABOVE THIS LINE! ^^^^^^^^^^^^^^^^^^^^^  */
     
@@ -112,9 +126,95 @@ asmSort:
     /* Note to Profs: 
      */
 
-    /* YOUR asmSort CODE BELOW THIS LINE! VVVVVVVVVVVVVVVVVVVVV  */
+    /* Initialize total swap count to 0 */
+    mov r4, 0          /* r4 will hold the total swap count */
 
+outer_loop:
+    /* Initialize inner swap count to 0 */
+    mov r5, 0          /* r5 will hold the inner swap count */
+    mov r6, r0         /* r6 will be used to traverse the array */
 
+inner_loop:
+    /* Load current element */
+    cmp r2, 1          /* Check if the element size is 1 byte */
+    beq load_byte
+    cmp r2, 2          /* Check if the element size is 2 bytes */
+    beq load_halfword
+    cmp r2, 4          /* Check if the element size is 4 bytes */
+    beq load_word
+
+    
+load_byte:
+    ldr r7, [r6], 4    /* Load byte from address in r6 to r7 and increment r6 */
+    and r7, r7, 0xFF   /* Mask the byte to get the value */
+    ldr r8, [r6]       /* Load next byte from address in r6 to r8 */
+    and r8, r8, 0xFF   /* Mask the byte to get the value */
+    b compare_elements
+
+load_halfword:
+    ldr r7, [r6], 4    /* Load halfword from address in r6 to r7 and increment r6 */
+    mov r9, 0xFFFF     /* Load the mask value into r9 */
+    and r7, r7, r9     /* Mask the halfword to get the value */
+    ldr r8, [r6]       /* Load next 32-bit word from address in r6 to r8 */
+    and r8, r8, r9     /* Mask the halfword to get the value */
+    b compare_elements
+
+load_word:
+    ldr r7, [r6], 4    /* Load word from address in r6 to r7 and increment r6 */
+    ldr r8, [r6]       /* Load next word from address in r6 to r8 */
+    b compare_elements
+
+compare_elements:
+    /* Compare the current element with the next element */
+    cmp r7, r8
+    ble no_swap         /* If r7 <= r8, no swap is needed */
+
+    /* Swap the elements */
+    cmp r2, 1           /* Check if the element size is 1 byte */
+    beq swap_byte
+    cmp r2, 2           /* Check if the element size is 2 bytes */
+    beq swap_halfword
+    cmp r2, 4           /* Check if the element size is 4 bytes */
+    beq swap_word
+
+swap_byte:
+
+    strb r8, [r6, -4]   /* Store r8 (next element) in the previous address */
+    strb r7, [r6]       /* Store r7 (current element) in the current address */
+    b increment_counts
+
+swap_halfword:
+    strh r8, [r6, -4]   /* Store r8 (next element) in the previous address */
+    strh r7, [r6]       /* Store r7 (current element) in the current address */
+    b increment_counts
+
+swap_word:
+    str r8, [r6, -4]    /* Store r8 (next element) in the previous address */
+    str r7, [r6]        /* Store r7 (current element) in the current address */
+    b increment_counts
+
+increment_counts:
+    add r4, r4, 1       /* Increment the total swap count */
+    add r5, r5, 1       /* Increment the inner swap count */
+
+no_swap:
+    /* Check if we reached the end of the array */
+    cmp r8, 0           /* Check if the next element is 0 */
+    bne inner_loop      /* If not end of array, continue inner loop */
+
+    /* If the inner swap count is 0, break out of the outer loop */
+    cmp r5, 0
+    beq sorted
+
+    /* Repeat the outer loop */
+    b outer_loop
+
+sorted:
+    /* Store the total swap count in r0 */
+    mov r0, r4
+
+    /* Return */
+    bx lr
 
     /* YOUR asmSort CODE ABOVE THIS LINE! ^^^^^^^^^^^^^^^^^^^^^  */
 
