@@ -71,27 +71,103 @@ NOTE: definitions: "greater than" means most positive number
 .global asmSwap
 .type asmSwap,%function     
 asmSwap:
+    // save the caller registers, as required by the ARM calling convention
+    push {r4-r11,LR}
 
     /* YOUR asmSwap CODE BELOW THIS LINE! VVVVVVVVVVVVVVVVVVVVV  */
 
-    /* Pseudocode for asmSwap function */
-    /*
-        Load the first value from memory
-        Load the second value from memory
-        If either value is 0, Return -1 (return value is in r0)
+    /* Load the first value from memory */
+    ldr r4, [r0]       /* Load the value at address r0 into r4 */
 
-        Check if the first value is greater than the second value
-        If the first value is not greater than the second value, Return 0
+    /* Load the second value from memory */
+    ldr r5, [r0, 4]    /* Load the value at address r0 + 4 into r5 */
 
-        Otherwise, Swap the values in memory using the steps below:
-        Store the second value in a temporary location
-        Store the first value in the location of the second value (using the correct size)
-        Store the second value in the location of the first value (using the correct size)
-        Return 1 to indicate a swap was made
-    */
+    /* Mask the values based on the size */
+    cmp r2, 1
+    beq mask_byte
+    cmp r2, 2
+    beq mask_halfword
+    cmp r2, 4
+    beq mask_word
 
-    /* YOUR asmSwap CODE ABOVE THIS LINE! ^^^^^^^^^^^^^^^^^^^^^  */
-    
+mask_byte:
+    and r4, r4, 0xFF   /* Mask the byte to get the value */
+    and r5, r5, 0xFF   /* Mask the byte to get the value */
+    b compare_values
+
+mask_halfword:
+    mov r6, 0xFFFF     /* Load the mask value into r6 */
+    and r4, r4, r6     /* Mask the halfword to get the value */
+    and r5, r5, r6     /* Mask the halfword to get the value */
+    b compare_values
+
+mask_word:
+    /* No need to mask for word size */
+    b compare_values
+
+compare_values:
+    /* Compare the values based on signed or unsigned */
+    cmp r1, 0
+    beq compare_unsigned
+    cmn r4, r5         /* Compare signed values */
+    b swap_check
+
+compare_unsigned:
+    cmp r4, r5         /* Compare unsigned values */
+
+swap_check:
+    ble no_swap        /* If r4 <= r5, no swap is needed */
+
+    /* Swap the elements */
+    cmp r2, 1          /* Check if the element size is 1 byte */
+    beq swap_byte
+    cmp r2, 2          /* Check if the element size is 2 bytes */
+    beq swap_halfword
+    cmp r2, 4          /* Check if the element size is 4 bytes */
+    beq swap_word
+
+swap_byte:
+    strb r5, [r0]      /* Store r5 (next element) in the address r0 */
+    strb r4, [r0, 4]   /* Store r4 (current element) in the address r0 + 4 */
+    b swap_complete
+
+swap_halfword:
+    strh r5, [r0]      /* Store r5 (next element) in the address r0 */
+    strh r4, [r0, 4]   /* Store r4 (current element) in the address r0 + 4 */
+    b swap_complete
+
+swap_word:
+    str r5, [r0]       /* Store r5 (next element) in the address r0 */
+    str r4, [r0, 4]    /* Store r4 (current element) in the address r0 + 4 */
+    b swap_complete
+
+swap_complete:
+    /* Check if either v1 or v2 is 0 */
+    cmp r4, 0
+    beq set_return_negative_one
+    cmp r5, 0
+    beq set_return_negative_one
+
+    /* If neither v1 nor v2 is 0, set return value to 1 (swap was made) */
+    mov r0, 1
+    b restore_registers
+
+set_return_negative_one:
+    /* Set return value to -1 if either v1 or v2 is 0 */
+    mov r0, -1
+    b restore_registers
+
+no_swap:
+    /* Set return value to 0 if neither v1 nor v2 is 0, and no swap was made */
+    mov r0, 0
+
+restore_registers:
+    /* Restore the caller's registers, as required by the ARM calling convention */
+    pop {r4-r11,LR}
+
+    /* Return */
+    mov pc, lr  /* asmSwap return to caller */
+
     
 /********************************************************************
 function name: asmSort(startAddr,signed,elementSize)
@@ -122,6 +198,8 @@ NOTE: definitions: "greater than" means most positive number
 .global asmSort
 .type asmSort,%function
 asmSort:   
+    // save the caller registers, as required by the ARM calling convention
+    push {r4-r11,LR}
 
     /* Note to Profs: 
      */
@@ -136,89 +214,55 @@ outer_loop:
 
 inner_loop:
     /* Load current element */
-    cmp r2, 1          /* Check if the element size is 1 byte */
-    beq load_byte
-    cmp r2, 2          /* Check if the element size is 2 bytes */
-    beq load_halfword
-    cmp r2, 4          /* Check if the element size is 4 bytes */
-    beq load_word
+    ldr r7, [r6]       /* Load the value at address r6 into r7 */
 
-    
-load_byte:
-    ldr r7, [r6], 4    /* Load byte from address in r6 to r7 and increment r6 */
-    and r7, r7, 0xFF   /* Mask the byte to get the value */
-    ldr r8, [r6]       /* Load next byte from address in r6 to r8 */
-    and r8, r8, 0xFF   /* Mask the byte to get the value */
-    b compare_elements
+    /* Load the next value from memory */
+    add r8, r6, 4      /* Calculate the address of the next element */
+    ldr r9, [r8]       /* Load the value at address r8 into r9 */
 
-load_halfword:
-    ldr r7, [r6], 4    /* Load halfword from address in r6 to r7 and increment r6 */
-    mov r9, 0xFFFF     /* Load the mask value into r9 */
-    and r7, r7, r9     /* Mask the halfword to get the value */
-    ldr r8, [r6]       /* Load next 32-bit word from address in r6 to r8 */
-    and r8, r8, r9     /* Mask the halfword to get the value */
-    b compare_elements
+    /* Check if either value is 0 */
+    cmp r7, 0
+    beq complete_sort
+    cmp r9, 0
+    beq complete_sort
 
-load_word:
-    ldr r7, [r6], 4    /* Load word from address in r6 to r7 and increment r6 */
-    ldr r8, [r6]       /* Load next word from address in r6 to r8 */
-    b compare_elements
+    /* Call asmSwap to swap the values if needed */
+    mov r0, r6              /* Pass the address */
+    mov r1, r1              /* Pass the signed flag (not required, but added in case of future code changes) */
+    mov r2, r2              /* Pass the element size (same note as above) */
+    push {r6, r7, r8, r9, r1, r2}   /* Save the registers */
+    bl asmSwap                      /* Call asmSwap */
+    pop {r6, r7, r8, r9, r1, r2}    /* Restore the registers */
 
-compare_elements:
-    /* Compare the current element with the next element */
-    cmp r7, r8
-    ble no_swap         /* If r7 <= r8, no swap is needed */
-
-    /* Swap the elements */
-    cmp r2, 1           /* Check if the element size is 1 byte */
-    beq swap_byte
-    cmp r2, 2           /* Check if the element size is 2 bytes */
-    beq swap_halfword
-    cmp r2, 4           /* Check if the element size is 4 bytes */
-    beq swap_word
-
-swap_byte:
-
-    strb r8, [r6, -4]   /* Store r8 (next element) in the previous address */
-    strb r7, [r6]       /* Store r7 (current element) in the current address */
-    b increment_counts
-
-swap_halfword:
-    strh r8, [r6, -4]   /* Store r8 (next element) in the previous address */
-    strh r7, [r6]       /* Store r7 (current element) in the current address */
-    b increment_counts
-
-swap_word:
-    str r8, [r6, -4]    /* Store r8 (next element) in the previous address */
-    str r7, [r6]        /* Store r7 (current element) in the current address */
-    b increment_counts
+    /* If a swap was made, increment the swap counts */
+    cmp r0, 1
+    bne no_swap_required         /* If no swap was made, continue to the next element */
 
 increment_counts:
     add r4, r4, 1       /* Increment the total swap count */
     add r5, r5, 1       /* Increment the inner swap count */
 
-no_swap:
+no_swap_required:
     /* Check if we reached the end of the array */
-    cmp r8, 0           /* Check if the next element is 0 */
+    cmp r9, 0           /* Check if the next element is 0 */
     bne inner_loop      /* If not end of array, continue inner loop */
 
     /* If the inner swap count is 0, break out of the outer loop */
-    cmp r5, 0
-    beq sorted
+    cmp r5, 0 
+    beq complete_sort
 
     /* Repeat the outer loop */
     b outer_loop
 
-sorted:
+complete_sort:
     /* Store the total swap count in r0 */
     mov r0, r4
 
+    /* Restore the caller's registers, as required by the ARM calling convention */
+    pop {r4-r11,LR}
+
     /* Return */
-    bx lr
-
-    /* YOUR asmSort CODE ABOVE THIS LINE! ^^^^^^^^^^^^^^^^^^^^^  */
-
-   
+    bx lr  /* asmSort return to caller */
 
 /**********************************************************************/   
 .end  /* The assembler will not process anything after this directive!!! */
