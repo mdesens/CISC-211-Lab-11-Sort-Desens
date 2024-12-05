@@ -104,20 +104,28 @@ mask_halfword:
 mask_word:
     /* No need to mask for word size */
     b compare_values
-
+    
 compare_values:
+    /* Check if either v1 or v2 is 0 */
+    cmp r4, 0
+    beq set_return_negative_one
+    cmp r5, 0
+    beq set_return_negative_one
+
     /* Compare the values based on signed or unsigned */
     cmp r1, 0
     beq compare_unsigned
-    cmn r4, r5         /* Compare signed values */
-    b swap_check
+
+    /* Compare signed values */
+    cmp r4, r5
+    ble no_swap        /* If r4 <= r5, no swap is needed */
+    b swap_elements
 
 compare_unsigned:
     cmp r4, r5         /* Compare unsigned values */
+    bls no_swap        /* If r4 <= r5, no swap is needed */
 
-swap_check:
-    ble no_swap        /* If r4 <= r5, no swap is needed */
-
+swap_elements:
     /* Swap the elements */
     cmp r2, 1          /* Check if the element size is 1 byte */
     beq swap_byte
@@ -142,12 +150,6 @@ swap_word:
     b swap_complete
 
 swap_complete:
-    /* Check if either v1 or v2 is 0 */
-    cmp r4, 0
-    beq set_return_negative_one
-    cmp r5, 0
-    beq set_return_negative_one
-
     /* If neither v1 nor v2 is 0, set return value to 1 (swap was made) */
     mov r0, 1
     b restore_registers
@@ -236,13 +238,13 @@ inner_loop:
 
     /* If a swap was made, increment the swap counts */
     cmp r0, 1
-    bne no_swap_required         /* If no swap was made, continue to the next element */
+    bne check_loop_end         /* If no swap was made, continue to the next element */
 
 increment_counts:
     add r4, r4, 1       /* Increment the total swap count */
     add r5, r5, 1       /* Increment the inner swap count */
 
-no_swap_required:
+check_loop_end:
     /* Check if we reached the end of the array */
     cmp r9, 0           /* Check if the next element is 0 */
     bne inner_loop      /* If not end of array, continue inner loop */
